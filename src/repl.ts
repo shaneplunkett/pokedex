@@ -1,4 +1,4 @@
-import readline from "node:readline";
+import { initState } from "./state.js";
 
 export function cleanInput(input: string): string[] {
   return input
@@ -7,20 +7,24 @@ export function cleanInput(input: string): string[] {
     .filter((line) => line.trim() !== "");
 }
 
-export function startREPL() {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-    prompt: "Pokedex > ",
-  });
+export function startREPL(): void {
+  const state = initState();
+  const { rl } = state;
+
   rl.prompt();
   rl.on("line", (line: string) => {
     const input = cleanInput(line);
+
     if (input.length < 1) {
       rl.prompt();
-    } else {
-      console.log(`Your command was: ${input[0]}`);
-      rl.prompt();
+    } else if (input.length === 1) {
+      const command = input[0];
+      if (command in state.commands) {
+        state.commands[command].callback(state);
+      } else {
+        console.log("Unknown Command");
+        rl.prompt();
+      }
     }
   });
 }
